@@ -9,3 +9,6 @@ build/
 
 # logs
 *.log
+
+# others
+*.sqlite*
