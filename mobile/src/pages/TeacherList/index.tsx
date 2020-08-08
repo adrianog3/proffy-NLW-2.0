@@ -5,17 +5,35 @@ import { BorderlessButton, RectButton } from "react-native-gesture-handler";
 import { Feather } from "@expo/vector-icons";
 import styles from "./styles";
 import api from "../../services/api";
+import AsyncStorage from "@react-native-community/async-storage";
 
 import PageHeader from "../../components/PagesHeader";
 
 function TeacherList() {
   const [teachers, setTeachers] = useState([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
+
   const [subject, setSubject] = useState("");
   const [week_day, setWeekDay] = useState("");
   const [time, setTime] = useState("");
 
+  function loadFavorites() {
+    AsyncStorage.getItem("favorites").then((response) => {
+      if (response) {
+        const favoredTeachers = JSON.parse(response);
+        const favoredTeachersIds = favoredTeachers.map((teacher: Teacher) => {
+          return teacher.id;
+        });
+
+        setFavorites(favoredTeachersIds);
+      }
+    });
+  }
+
   async function handleFiltersSubmit() {
+    loadFavorites();
+
     const response = await api.get("classes", {
       params: {
         subject,
@@ -96,7 +114,11 @@ function TeacherList() {
         }}
       >
         {teachers.map((teacher: Teacher) => (
-          <TeacherItem key={teacher.id} teacher={teacher} />
+          <TeacherItem
+            key={teacher.id}
+            teacher={teacher}
+            favored={favorites.includes(teacher.id)}
+          />
         ))}
       </ScrollView>
     </View>
